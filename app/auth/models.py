@@ -1,6 +1,7 @@
 from app.core.database import Base
-from sqlalchemy import Column, Integer, String ,Enum
+from sqlalchemy import Column, ForeignKey, Integer, String ,Enum
 import enum
+from sqlalchemy.orm import relationship
 
 class UserRole(str, enum.Enum):
     admin = "admin"
@@ -14,3 +15,5 @@ class Users(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
+
+    products = relationship("Product", back_populates="creator")

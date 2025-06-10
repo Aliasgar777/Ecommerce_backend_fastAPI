@@ -18,7 +18,6 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/signin")
 
 @router.post("/auth/signin", response_model=schemas.Token)
 async def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
@@ -30,7 +29,7 @@ async def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db
     access_token_expires = timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES))
     refresh_token_expires = timedelta(days=float(REFRESH_TOKEN_EXPIRE_DAYS))
 
-    access_token = utils.create_access_token(data={"sub": user.email, "role" : user.role}, expires_delta=access_token_expires)
+    access_token = utils.create_access_token(data={"sub": user.email, "id" : user.id, "role": user.role}, expires_delta=access_token_expires)
     refresh_token = utils.create_refresh_token(data={"sub": user.email}, expires_delta=refresh_token_expires)
 
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
@@ -59,6 +58,7 @@ async def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
     user_reponse = schemas.ResponseUser(
         name = user_obj.name,
         email = user_obj.email,
-        role = user_obj.role
+        role = user_obj.role or "user"
     )
     return user_reponse
+

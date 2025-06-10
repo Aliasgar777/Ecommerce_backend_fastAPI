@@ -8,13 +8,14 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os , jwt
-
 from app.auth import models, schemas
 from app.core.database import get_db
 
 load_dotenv()
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/signin")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -55,3 +56,16 @@ def create_refresh_token(data: dict, expires_delta: timedelta):
     encoded_jwt = jwt.encode(data_to_encode, JWT_SECRET_KEY, algorithm= ALGORITHM)
     return encoded_jwt
 
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        id = payload.get("id")
+        if email is None or id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
