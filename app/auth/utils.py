@@ -10,10 +10,13 @@ from dotenv import load_dotenv
 import os , jwt
 from app.auth import models, schemas
 from app.core.database import get_db
+from itsdangerous import URLSafeTimedSerializer,BadSignature, SignatureExpired
+from app.core.logger import logger
 
 load_dotenv()
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
+RESET_TOKEN_SECRET = os.getenv("RESET_TOKEN_SECRET")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/signin")
 
@@ -69,3 +72,17 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+serializer = URLSafeTimedSerializer(secret_key=RESET_TOKEN_SECRET) 
+
+def generate_reset_token(email: str) -> str:
+    return serializer.dumps(email, salt="reset-password")
+
+def verify_reset_token(token: str, max_age: int = 3600) -> str | None:
+    try:
+        return serializer.loads(token, salt="reset-password", max_age=max_age)
+    except SignatureExpired:
+        logger.error("Token expired.")
+    except BadSignature:
+        logger.error("Invalid token.")
+    return None
