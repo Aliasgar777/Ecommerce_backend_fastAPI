@@ -15,5 +15,4 @@ class Product(Base):
     
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    # SQLAlchemy relationship (backref optional)
     creator = relationship("Users", back_populates="products")

@@ -10,6 +10,7 @@ from app.core.database import Base
 
 from app.auth import models
 from app.product import models
+from app.cart import models
 from dotenv import load_dotenv
 
 load_dotenv()
