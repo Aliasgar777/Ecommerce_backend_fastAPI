@@ -12,17 +12,24 @@ from app.product import models as prod_model
 
 router = APIRouter()
 
-@router.post("/cart", response_model=schemas.CartResponse)
+@router.post("/cart")
 def add_to_cart(item : schemas.CartRequest, db : Session = Depends(get_db),
                 current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
+    
     if utils.check_if_possible(item.product_id, db, item.quantity):
-        product_in_cart = models.Cart(**item.model_dump(), user_id = current_user.get("id"))
-        db.add(product_in_cart)
+        prev_item = db.query(models.Cart).filter(models.Cart.product_id == item.product_id).first()
+
+        if prev_item is None :
+            product_in_cart = models.Cart(**item.model_dump(), user_id = current_user.get("id"))
+            db.add(product_in_cart)
+        else :
+            prev_item.quantity = prev_item.quantity + item.quantity
+        
         db.commit()
-        db.refresh(product_in_cart)
-        return product_in_cart
+        return "Item added to Cart"
+        
     else :
-        logger.error("Product not found")
+        return "Product not found"  
 
 @router.get("/cart", response_model=List[schemas.CartResponse])
 def view_cart(db : Session = Depends(get_db),
@@ -30,10 +37,11 @@ def view_cart(db : Session = Depends(get_db),
     items = db.query(models.Cart).filter(models.Cart.user_id == current_user.get("id")).all()
     return items
 
-@router.delete("/cart/{cart_id}")
-def remove_from_cart(cart_id : int ,db : Session = Depends(get_db),
+@router.delete("/cart/{product_id}")
+def remove_from_cart(product_id : int ,db : Session = Depends(get_db),
               current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
-    item = db.query(models.Cart).filter(models.Cart.cart_id == cart_id).first()
+    item = db.query(models.Cart).filter(and_(models.Cart.product_id == product_id , 
+                                            models.Cart.user_id == current_user.get("id"))).first()
 
     if item is None:
         raise HTTPException(status_code=404, detail="item in cart not found")
@@ -42,18 +50,19 @@ def remove_from_cart(cart_id : int ,db : Session = Depends(get_db),
 
     if product is None:
          raise HTTPException(status_code=404, detail="product in cart not found")
-
-    product.stock = product.stock + item.quantity
+        
     db.delete(item)
     db.commit()
     db.refresh(product)
 
-    return {cart_id : "item deleted successfully"}
+    return {product_id : "item deleted successfully"}
 
-@router.put("/cart", response_model = schemas.CartResponse)
-def update_cart(to_update : schemas.CartUpdate,db : Session = Depends(get_db),
+@router.put("/cart/{product_id}")
+def update_cart(product_id : int, to_update : schemas.CartUpdate ,db : Session = Depends(get_db),
               current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
-    item = db.query(models.Cart).filter(and_(models.Cart.cart_id == to_update.cart_id, models.Cart.user_id == current_user.get("id"))).first()
+    
+    item = db.query(models.Cart).filter(and_(models.Cart.product_id == product_id ,
+                                            models.Cart.user_id == current_user.get("id"))).first()
 
     if item is None:
         raise HTTPException(status_code=404, detail="item in cart not found")
@@ -63,15 +72,13 @@ def update_cart(to_update : schemas.CartUpdate,db : Session = Depends(get_db),
     if product is None:
          raise HTTPException(status_code=404, detail="product in cart not found")
     
-    if item.quantity > to_update.quantity :
-        product.stock = product.stock + item.quantity - to_update.quantity
-    elif product.stock >= to_update.quantity - item.quantity:
-        product.stock = product.stock - (to_update.quantity - item.quantity)
-
-    item.quantity = to_update.quantity
-
-    db.commit()
-    db.refresh(product)
-    db.refresh(item)
-
-    return item
+    if to_update.quantity <= 0:
+        db.delete(item)
+    elif product.stock >= to_update.quantity:
+        item.quantity = to_update.quantity
+        db.commit()
+        db.refresh(product)
+        db.refresh(item)
+        return "Products's quantity updated successfully"
+    else :
+        return "Not enough stock available"

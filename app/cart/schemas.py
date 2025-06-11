@@ -6,7 +6,6 @@ class CartRequest(BaseModel):
     quantity : int = Field(...)
 
 class CartUpdate(BaseModel):
-    cart_id: int = Field(...)
     quantity : int = Field(...)
 
 class CartResponse(CartRequest):

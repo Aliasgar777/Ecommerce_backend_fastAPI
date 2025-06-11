@@ -22,7 +22,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 
 @router.post("/auth/signin", response_model=schemas.Token)
-async def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
+def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
     user = utils.authenticate_user(sigin_data.email, sigin_data.password, db)
     
     if not user:
@@ -37,7 +37,7 @@ async def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/auth/signup", response_model=schemas.ResponseUser)
-async def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
+def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
     user = utils.get_user(signup_data.email, db)
     logger.info("inside signup")
 
