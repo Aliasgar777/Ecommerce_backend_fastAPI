@@ -17,3 +17,4 @@ class Users(Base):
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
     products = relationship("Product", back_populates="creator")
+    orders = relationship("Orders", back_populates="user")
