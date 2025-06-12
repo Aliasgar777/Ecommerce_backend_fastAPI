@@ -18,3 +18,4 @@ class Users(Base):
 
     products = relationship("Product", back_populates="creator")
     orders = relationship("Orders", back_populates="user")
+    cart = relationship("Cart", back_populates="user")

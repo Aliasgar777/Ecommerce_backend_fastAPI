@@ -12,7 +12,7 @@ from app.auth import models
 from app.product import models
 from app.cart import models
 from dotenv import load_dotenv
-from app.orders import models
+from app.orders.models import OrderItem, Orders
 
 load_dotenv()
 

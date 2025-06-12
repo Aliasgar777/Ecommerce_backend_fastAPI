@@ -31,9 +31,8 @@ def get_password_hash(password):
 
 
 def get_user(email: str, db: Session):
-    stmt = select(models.Users).where(models.Users.email == email)
-    result = db.execute(stmt).scalar_one_or_none()
-    return result
+    user = db.query(models.Users).filter(models.Users.email == email).first()
+    return user
 
 
 def authenticate_user(email: str,password: str,db:Session):
@@ -63,10 +62,6 @@ def create_refresh_token(data: dict, expires_delta: timedelta):
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        id = payload.get("id")
-        if email is None or id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")

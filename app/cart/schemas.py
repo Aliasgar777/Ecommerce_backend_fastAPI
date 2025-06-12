@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 
-
 class CartRequest(BaseModel):
     product_id : int = Field(...)
     quantity : int = Field(...)

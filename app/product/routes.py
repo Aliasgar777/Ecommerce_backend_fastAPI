@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.database import get_db
 from app.product import models, schemas, utils
@@ -10,7 +10,8 @@ from app.core.logger import logger
 router = APIRouter()
 
 @router.post("/admin/products", response_model=schemas.ProductResponse)
-def create_product( product_data: schemas.ProductCreate, db: Session = Depends(get_db),
+def create_product(
+    product_data: schemas.ProductCreate, db: Session = Depends(get_db),
     current_user: dict = Depends(utils.require_role(auth_model.UserRole.admin))):
 
     new_product = models.Product(**product_data.model_dump(), created_by=current_user.get("id"))
@@ -21,43 +22,122 @@ def create_product( product_data: schemas.ProductCreate, db: Session = Depends(g
 
 
 @router.get("/admin/products", response_model=List[schemas.ProductResponse])
-def get_products(db: Session = Depends(get_db), 
-                current_user: dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+def get_products(
+    db: Session = Depends(get_db), 
+    current_user: dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+
     if current_user is None:
-        raise HTTPException(status_code=404, detail="Token Expired")
+        raise HTTPException(
+            status_code=404, 
+            detail="Token Expired"
+            )
     return utils.get_products_by_id(db, current_user)
-
-
-@router.get("/products", response_model=List[schemas.ProductResponse])
-def get_products(db: Session = Depends(get_db), 
-                current_user: dict = Depends(utils.require_role(auth_model.UserRole.user))):
-    if current_user is None:
-        raise HTTPException(status_code=404, detail="Token Expired")
-    return utils.get_all_products(db)
     
 
+@router.get("/products/search", response_model=schemas.ProductSearchResponse)
+def search_products(
+    keyword: str,
+    db: Session = Depends(get_db),
+    current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))):
+
+    keyword = keyword.strip()
+
+    try:
+        keyword_pattern = f"%{keyword}%"
+        products = db.query(models.Product).filter(
+        models.Product.name.ilike(keyword_pattern) |
+        models.Product.description.ilike(keyword_pattern) |
+        models.Product.category.ilike(keyword_pattern)
+        ).all()
+
+        if not products:
+            return {
+                "products": [],
+                "message": "No matching products found./"
+            }
+
+        return {
+            "products": products,
+            "message": None 
+        }
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Not able to search right now!!"
+        )
+
 @router.get("/admin/products/{id}", response_model=schemas.ProductResponse)
-def get_product(id: int, db: Session = Depends(get_db),
-                current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+def get_product(
+    id: int, db: Session = Depends(get_db),
+    current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+
     return utils.get_product_by_id(db, id, current_user)
 
 
 @router.put("/admin/products/{id}", response_model=schemas.ProductResponse)
-def update_product(id: int, updated_product: schemas.ProductUpdate, db: Session = Depends(get_db),
-                   current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+def update_product(
+    id: int, updated_product: schemas.ProductUpdate, db: Session = Depends(get_db),
+    current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+
     product = utils.update_product(db, id, updated_product, current_user)
     return product
 
 
 @router.delete("/admin/products/{id}")
-def delete_product(id: int, db: Session = Depends(get_db),
-                   current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+def delete_product(
+    id: int, db: Session = Depends(get_db),
+    current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+
     utils.delete_product(db, id, current_user)
     return {"message": "Product deleted successfully"}
 
 
 @router.get("/products/{id}", response_model=schemas.ProductResponse)
-def get_product(id: int, db: Session = Depends(get_db),
-                current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))):
+def get_product(
+    id: int, db: Session = Depends(get_db),
+    current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))):
+    
     return utils.get_product_by_id_public(db, id)
 
+
+@router.get("/products", response_model=List[schemas.ProductResponse])
+def list_products(
+    category: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    sort_by: Optional[str] = "id",
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db),
+    current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))
+):
+    valid_sort_fields = ["price", "name", "id"]
+    if sort_by not in valid_sort_fields:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid sort_by field. Must be one of: {', '.join(valid_sort_fields)}"
+        )
+
+    try:
+        query = db.query(models.Product)
+
+        if category is not None:
+            query = query.filter(models.Product.category == category)
+        if min_price is not None:
+            query = query.filter(models.Product.price >= min_price)
+        if max_price is not None:
+            query = query.filter(models.Product.price <= max_price)
+
+        query = query.order_by(getattr(models.Product, sort_by))
+
+        offset = (page - 1) * page_size
+        products = query.offset(offset).limit(page_size).all()
+
+        return products
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong while fetching products."
+        )

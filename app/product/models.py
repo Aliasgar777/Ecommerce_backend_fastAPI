@@ -16,3 +16,4 @@ class Product(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     creator = relationship("Users", back_populates="products")
+    in_cart = relationship("Cart", back_populates="product" )

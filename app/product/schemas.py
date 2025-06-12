@@ -1,5 +1,6 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator
+from typing import Optional, List
+from pydantic import BaseModel, Field, field_validator
+from .models import Product 
 
 class ProductBase(BaseModel):
     name : str
@@ -8,6 +9,7 @@ class ProductBase(BaseModel):
     stock: int
     category:str
     image_url: str
+
 
 class ProductCreate(ProductBase):
     pass
@@ -25,3 +27,7 @@ class ProductResponse(ProductBase):
 
     class Config:
         from_attributes = True
+
+class ProductSearchResponse(BaseModel):
+    products : List[ProductResponse]
+    message : Optional[str]

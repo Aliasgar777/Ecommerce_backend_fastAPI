@@ -26,15 +26,24 @@ def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
     user = utils.authenticate_user(sigin_data.email, sigin_data.password, db)
     
     if not user:
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password")
     
     access_token_expires = timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES))
     refresh_token_expires = timedelta(days=float(REFRESH_TOKEN_EXPIRE_DAYS))
 
-    access_token = utils.create_access_token(data={"sub": user.email, "id" : user.id, "role": user.role}, expires_delta=access_token_expires)
-    refresh_token = utils.create_refresh_token(data={"sub": user.email}, expires_delta=refresh_token_expires)
+    access_token = utils.create_access_token(
+        data={"sub": user.email, "id" : user.id, "role": user.role},
+        expires_delta=access_token_expires
+        )
+    refresh_token = utils.create_refresh_token(
+        data={"sub": user.email}, expires_delta=refresh_token_expires
+        )
 
-    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    return {"access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer"}
 
 @router.post("/auth/signup", response_model=schemas.ResponseUser)
 def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
@@ -42,7 +51,9 @@ def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
     logger.info("inside signup")
 
     if user:
-        raise HTTPException(status_code=400, detail="User already registered")
+        raise HTTPException(
+            status_code=400,
+            detail="User already registered")
     
     hashed_password = utils.get_password_hash(signup_data.password)
 
@@ -80,11 +91,15 @@ def forgot_password(request:schemas.ForgotPasswordRequest, db: Session = Depends
 def reset_password(token: str = Form(...), new_password: str = Form(...), db: Session = Depends(get_db)):
     email = verify_reset_token(token)
     if not email:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid or expired token")
 
     user = db.query(models.Users).filter(models.Users.email == email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404, 
+            detail="User not found")
 
     user.hashed_password = get_password_hash(new_password)
     db.commit()

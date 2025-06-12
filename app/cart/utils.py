@@ -11,9 +11,6 @@ def check_if_possible(product_id : int, db : Session, item_quantity : int):
         raise HTTPException(status_code=404, detail="Product is not available")
     if product.stock < item_quantity:
         return False
-    
-    db.commit()
-    db.refresh(product)
     return True
 
 
