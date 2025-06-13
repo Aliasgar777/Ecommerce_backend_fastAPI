@@ -23,9 +23,12 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 @router.post("/auth/signin", response_model=schemas.Token)
 def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
+    
+    logger.info(f"Sign-in attempt for email: {sigin_data.email}")
     user = utils.authenticate_user(sigin_data.email, sigin_data.password, db)
     
     if not user:
+        logger.warning(f"Failed login attempt for email: {sigin_data.email}")
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password")
@@ -41,16 +44,21 @@ def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
         data={"sub": user.email}, expires_delta=refresh_token_expires
         )
 
+    logger.info(f"Successful login for user_id: {user.id}, email: {user.email}")
     return {"access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer"}
+    
+
 
 @router.post("/auth/signup", response_model=schemas.ResponseUser)
 def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
+
+    logger.info(f"Sign-up attempt for email - {signup_data.email}")
     user = utils.get_user(signup_data.email, db)
-    logger.info("inside signup")
 
     if user:
+        logger.warning(f"Sign-up error, email - {signup_data.email} already registered ")
         raise HTTPException(
             status_code=400,
             detail="User already registered")
@@ -73,11 +81,13 @@ def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
         email = user_obj.email,
         role = user_obj.role or "user"
     )
+    logger.info(f"Sign-up succesfull for email - {signup_data.email}")
     return user_reponse
 
 
 @router.post("/auth/forgot-password")
 def forgot_password(request:schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
+    logger.info("forgot password using free email service")
     user = db.query(models.Users).filter(models.Users.email == request.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -87,8 +97,15 @@ def forgot_password(request:schemas.ForgotPasswordRequest, db: Session = Depends
     send_reset_email(user.email, token)
     return {"message": "Password reset email sent"}
 
+
 @router.post("/auth/reset-password")
-def reset_password(token: str = Form(...), new_password: str = Form(...), db: Session = Depends(get_db)):
+def reset_password(
+    form_data: schemas.ResetPasswordRequest = Depends(schemas.ResetPasswordRequest.as_form),
+    db: Session = Depends(get_db)
+    ):
+    token = form_data.token
+    new_password = form_data.new_password
+    logger.info("updating the new password")
     email = verify_reset_token(token)
     if not email:
         raise HTTPException(
@@ -103,6 +120,7 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
 
     user.hashed_password = get_password_hash(new_password)
     db.commit()
+    logger.info(f"new password updated for user {user.name}")
     return HTMLResponse(content="<h3>Password updated successfully</h3>")
 
 @router.get("/auth/reset-password-form")

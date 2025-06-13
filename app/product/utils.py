@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session
 from app.auth import utils as auth_utils
 from . import models, schemas
 from app.auth.models import UserRole 
+from app.core.logger import logger
 
 def require_role(required_role: UserRole):
     def role_checker(token_data: dict = Depends(auth_utils.get_current_user)):
         if token_data.get("role") != required_role:
+            logger.warning(f"user with id {token_data.get("id")} does not have enough permission")
             raise HTTPException(
                 status_code=403, 
                 detail="Not enough permissions")

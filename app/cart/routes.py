@@ -16,6 +16,8 @@ router = APIRouter()
 def add_to_cart(
     cart_item : schemas.CartRequest, db : Session = Depends(get_db),
     current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
+
+    logger.info(f"adding products to cart with id {cart_item.product_id}")
     
     if utils.check_if_possible(cart_item.product_id, db, cart_item.quantity):
         exist_in_cart = db.query(models.Cart).filter(

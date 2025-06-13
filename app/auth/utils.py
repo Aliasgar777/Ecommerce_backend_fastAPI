@@ -70,14 +70,15 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 serializer = URLSafeTimedSerializer(secret_key=RESET_TOKEN_SECRET) 
 
-def generate_reset_token(email: str) -> str:
+def generate_reset_token(email: str):
     return serializer.dumps(email, salt="reset-password")
 
-def verify_reset_token(token: str, max_age: int = 3600) -> str | None:
+def verify_reset_token(token: str, max_age: int = 3600):
     try:
         return serializer.loads(token, salt="reset-password", max_age=max_age)
     except SignatureExpired:
-        logger.error("Token expired.")
+        logger.exception("Token expired.")
+        raise HTTPException(status_code=401, detail="Token expired")
     except BadSignature:
-        logger.error("Invalid token.")
-    return None
+        logger.exception("Invalid token.")
+        raise HTTPException(status_code=401, detail="Invalid token")
