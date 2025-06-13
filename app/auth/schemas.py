@@ -44,16 +44,7 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
-    @classmethod
-    def as_form(
-        cls,
-        token: str = Form(...),
-        new_password: str = Form(...)
-    ):
-        return cls(token=token, new_password=new_password)
-
     @field_validator("new_password")
-    @classmethod
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long.")

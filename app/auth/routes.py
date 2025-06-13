@@ -99,11 +99,11 @@ def forgot_password(request:schemas.ForgotPasswordRequest, db: Session = Depends
 
 @router.post("/auth/reset-password")
 def reset_password(
-    form_data: schemas.ResetPasswordRequest = Depends(schemas.ResetPasswordRequest.as_form),
+    data : schemas.ResetPasswordRequest,
     db: Session = Depends(get_db)
     ):
-    token = form_data.token
-    new_password = form_data.new_password
+    token = data.token
+    new_password = data.new_password
     logger.info("updating the new password")
     email = verify_reset_token(token)
     if not email:
@@ -120,21 +120,4 @@ def reset_password(
     user.hashed_password = get_password_hash(new_password)
     db.commit()
     logger.info(f"new password updated for user {user.name}")
-    return HTMLResponse(content="<h3>Password updated successfully</h3>")
-
-@router.get("/auth/reset-password-form")
-def reset_password_form(token: str):
-    html_content = f"""
-    <html>
-        <body>
-            <h2>Reset Your Password</h2>
-            <form method="post" action="/auth/reset-password">
-                <input type="hidden" name="token" value="{token}">
-                <label>New Password:</label><br>
-                <input type="password" name="new_password" required><br><br>
-                <button type="submit">Reset Password</button>
-            </form>
-        </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+    return f"password reset complete for user ({user.name}) now login with the new password"

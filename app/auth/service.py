@@ -3,7 +3,7 @@ from email.message import EmailMessage
 from app.core.logger import logger
 
 def send_reset_email(email: str, token: str):
-    reset_link = f"http://127.0.0.1:8000/auth/reset-password-form?token={token}"
+    reset_link = f"http://127.0.0.1:8000/token={token}"
     msg = EmailMessage()
     msg['Subject'] = "Reset Your Password"
     msg['From'] = "aliasgarsaify61@gmail.com"
