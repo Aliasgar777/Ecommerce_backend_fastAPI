@@ -50,7 +50,6 @@ def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
             "token_type": "bearer"}
     
 
-
 @router.post("/auth/signup", response_model=schemas.ResponseUser)
 def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
 
