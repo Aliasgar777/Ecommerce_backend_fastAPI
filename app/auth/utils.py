@@ -73,6 +73,7 @@ serializer = URLSafeTimedSerializer(secret_key=RESET_TOKEN_SECRET)
 def generate_reset_token(email: str):
     return serializer.dumps(email, salt="reset-password")
 
+
 def verify_reset_token(token: str, max_age: int = 3600):
     try:
         return serializer.loads(token, salt="reset-password", max_age=max_age)

@@ -1,7 +1,6 @@
 # app/auth/routes.py
-from fastapi import APIRouter, Depends, Form, HTTPException
-from fastapi.responses import HTMLResponse
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException
+import jwt
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.core.database import get_db
@@ -22,7 +21,10 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 
 @router.post("/auth/signin", response_model=schemas.Token)
-def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
+def signin(
+    sigin_data: schemas.SigninRequest,
+    db: Session = Depends(get_db)
+    ):
     
     logger.info(f"Sign-in attempt for email: {sigin_data.email}")
     user = utils.authenticate_user(sigin_data.email, sigin_data.password, db)
@@ -41,7 +43,8 @@ def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
         expires_delta=access_token_expires
         )
     refresh_token = utils.create_refresh_token(
-        data={"sub": user.email}, expires_delta=refresh_token_expires
+        data={"sub": user.email, "id" : user.id, "role": user.role},
+        expires_delta=refresh_token_expires
         )
 
     logger.info(f"Successful login for user_id: {user.id}, email: {user.email}")
@@ -51,7 +54,10 @@ def signin(sigin_data: schemas.SigninRequest, db: Session = Depends(get_db)):
     
 
 @router.post("/auth/signup", response_model=schemas.ResponseUser)
-def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
+def signup(
+    signup_data :schemas.UserInDb, 
+    db: Session = Depends(get_db)
+    ):
 
     logger.info(f"Sign-up attempt for email - {signup_data.email}")
     user = utils.get_user(signup_data.email, db)
@@ -78,14 +84,17 @@ def signup(signup_data :schemas.UserInDb, db: Session = Depends(get_db)):
     user_reponse = schemas.ResponseUser(
         name = user_obj.name,
         email = user_obj.email,
-        role = user_obj.role or "user"
+        role = user_obj.role 
     )
     logger.info(f"Sign-up succesfull for email - {signup_data.email}")
     return user_reponse
 
 
 @router.post("/auth/forgot-password")
-def forgot_password(request:schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
+def forgot_password(
+    request:schemas.ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+    ):
     logger.info("forgot password using free email service")
     user = db.query(models.Users).filter(models.Users.email == request.email).first()
     if not user:
@@ -102,6 +111,7 @@ def reset_password(
     data : schemas.ResetPasswordRequest,
     db: Session = Depends(get_db)
     ):
+
     token = data.token
     new_password = data.new_password
     logger.info("updating the new password")
@@ -111,7 +121,7 @@ def reset_password(
             status_code=400, 
             detail="Invalid or expired token")
 
-    user = db.query(models.Users).filter(models.Users.email == email).first()
+    user = utils.get_user(email, db)
     if not user:
         raise HTTPException(
             status_code=404, 
@@ -121,3 +131,28 @@ def reset_password(
     db.commit()
     logger.info(f"new password updated for user {user.name}")
     return f"password reset complete for user ({user.name}) now login with the new password"
+
+
+@router.get("/auth/renew-token", response_model=schemas.Token)
+def renew_access_token(
+    token: schemas.NewTokenRquest, 
+    db: Session = Depends(get_db)
+    ):
+    try:
+        payload = jwt.decode(token.refresh_token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        user = utils.get_user(payload.get("sub"), db)
+
+        if user is None:
+            HTTPException(status_code=404, detail=f"user with email - {user.email} does not exists")
+        
+        new_access_token = utils.create_access_token(payload, timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES)))
+
+        return {
+            "access_token" : f"{new_access_token}",
+            "refresh_token" :f"{token.refresh_token}",
+            "token_type" : "Bearer"
+        }
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")

@@ -4,13 +4,12 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 class Token(BaseModel):
     access_token: str
     refresh_token : str
-    token_type: str
-
+    token_type: str = "Bearer"
 
 class ResponseUser(BaseModel):
-    name : str = Field(...)
+    name : str = Field(..., min_length=3, max_length=10)
     email : EmailStr = Field(...)
-    role: str 
+    role: str = "user"
 
 class UserInDb(ResponseUser):
     password: str = Field(...)
@@ -29,16 +28,13 @@ class UserInDb(ResponseUser):
             raise ValueError("Password must contain at least one special character.")
         return v
 
+
 class SigninRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class ForgotPasswordRequest(BaseModel):
     email:EmailStr
-
-from fastapi import Form
-from pydantic import BaseModel, field_validator
-import re
 
 class ResetPasswordRequest(BaseModel):
     token: str
@@ -57,3 +53,7 @@ class ResetPasswordRequest(BaseModel):
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
             raise ValueError("Password must contain at least one special character.")
         return v
+
+
+class NewTokenRquest(BaseModel):
+    refresh_token : str

@@ -1,24 +1,24 @@
 from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 from .models import Product 
 
 class ProductBase(BaseModel):
-    name : str
-    description: str
-    price : float
-    stock: int
-    category:str
-    image_url: str
+    name : str = Field(..., min_length=3, max_length=10)
+    description: str = Field(...)
+    price : PositiveFloat = Field(...)
+    stock : PositiveInt = Field(...)
+    category: str = Field(...)
+    image_url: str = Field(...)
 
 
 class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(BaseModel):
-    name: Optional[str]
+    name: Optional[str] = Field(default=None,min_length=3, max_length=10)
     description: Optional[str]
-    price: Optional[float] = Field(None, gt=0)
-    stock: Optional[int] = Field(None, ge=0)
+    price: Optional[PositiveFloat] 
+    stock: Optional[PositiveInt]
     category: Optional[str]
     image_url: Optional[str]
 
