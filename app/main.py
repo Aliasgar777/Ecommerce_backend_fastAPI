@@ -20,7 +20,7 @@ app.include_router(cart_router, tags=["Cart management"])
 app.include_router(order_router,  tags=["Orders"])
 
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+def http_exception_handler(request: Request, exc: StarletteHTTPException):
     logger.error(f"HTTP error: {exc.detail}")
     return JSONResponse(
         status_code=exc.status_code,
@@ -32,7 +32,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     )
 
 @app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
+def unhandled_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error occurred")
     return JSONResponse(
         status_code=500,
