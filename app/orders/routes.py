@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -72,7 +72,7 @@ def order_history(
 
 @router.get("/orders/{order_id}", response_model=schemas.OrderResponse)
 def order_details(
-    order_id: int, 
+    order_id: int = Path(..., ge=1), 
     current_user : dict = Depends(prod_utils.require_role(UserRole.user)),
     db: Session = Depends(get_db)):
     

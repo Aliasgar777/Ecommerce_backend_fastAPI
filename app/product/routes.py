@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from app.core.database import get_db
 from app.product import models, schemas, utils
 from sqlalchemy.orm import Session
@@ -36,7 +36,7 @@ def get_products(
 
 @router.get("/products/search", response_model=schemas.ProductSearchResponse)
 def search_products(
-    keyword: str,
+    keyword: str = Query(..., min_length=1, max_length=100),
     db: Session = Depends(get_db),
     current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))):
 
@@ -69,15 +69,18 @@ def search_products(
 
 @router.get("/admin/products/{id}", response_model=schemas.ProductResponse)
 def get_product(
-    id: int, db: Session = Depends(get_db),
+    id: int = Path(..., ge= 1),
+    db: Session = Depends(get_db),
     current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
 
     return utils.get_product_by_id(db, id, current_user)
 
 
 @router.put("/admin/products/{id}", response_model=schemas.ProductResponse)
-def update_product(
-    id: int, updated_product: schemas.ProductUpdate, db: Session = Depends(get_db),
+def update_product( 
+    updated_product: schemas.ProductUpdate, 
+    db: Session = Depends(get_db),
+    id: int = Path(..., ge=1),
     current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
 
     product = utils.update_product(db, id, updated_product, current_user)
@@ -86,7 +89,8 @@ def update_product(
 
 @router.delete("/admin/products/{id}")
 def delete_product(
-    id: int, db: Session = Depends(get_db),
+    id: int = Path(..., ge = 1), 
+    db: Session = Depends(get_db),
     current_user : dict = Depends(utils.require_role(auth_model.UserRole.admin))):
 
     utils.delete_product(db, id, current_user)
@@ -95,7 +99,8 @@ def delete_product(
 
 @router.get("/products/{id}", response_model=schemas.ProductResponse)
 def get_product(
-    id: int, db: Session = Depends(get_db),
+    id: int = Path(..., ge=1), 
+    db: Session = Depends(get_db),
     current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))):
     
     return utils.get_product_by_id_public(db, id)
@@ -103,12 +108,12 @@ def get_product(
 
 @router.get("/products", response_model=List[schemas.ProductResponse])
 def list_products(
-    category: Optional[str] = None,
-    min_price: Optional[float] = None,
-    max_price: Optional[float] = None,
-    sort_by: Optional[str] = "id",
-    page: int = 1,
-    page_size: int = 10,
+    category: Optional[str] = Query(default=None),
+    min_price: Optional[float] = Query(default=None, ge=0),
+    max_price: Optional[float] = Query(default=None, ge=0),
+    sort_by: Optional[str] = Query(default="id", min_length=2, max_length=5),
+    page: Optional[int] = Query(default=1, ge=1),
+    page_size: Optional[int] = Query(default=10, ge=1),
     db: Session = Depends(get_db),
     current_user : dict = Depends(utils.require_role(auth_model.UserRole.user))
 ):

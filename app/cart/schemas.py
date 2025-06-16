@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 
 class CartRequest(BaseModel):
-    product_id : int = Field(...)
+    product_id : int = Field(..., ge=1)
     quantity : PositiveInt = Field(...)
 
 class CartUpdate(BaseModel):

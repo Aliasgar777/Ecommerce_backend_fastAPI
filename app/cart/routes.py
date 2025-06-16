@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy import and_
 from . import schemas
 from sqlalchemy.orm import Session
@@ -48,7 +48,8 @@ def view_cart(
 
 @router.delete("/cart/{product_id}")
 def remove_from_cart(
-    product_id : int ,db : Session = Depends(get_db),
+    product_id : int = Path(..., ge=1),
+    db : Session = Depends(get_db),
     current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
 
     cart_item = db.query(models.Cart).filter(
@@ -66,8 +67,10 @@ def remove_from_cart(
     return {product_id : "item deleted successfully"}
 
 @router.put("/cart/{product_id}")
-def update_cart(
-    product_id : int, prod_to_update : schemas.CartUpdate ,db : Session = Depends(get_db),
+def update_cart( 
+    prod_to_update : schemas.CartUpdate ,
+    product_id : int = Path(..., ge=1),
+    db : Session = Depends(get_db),
     current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
     
     cart_item = db.query(models.Cart).filter(
