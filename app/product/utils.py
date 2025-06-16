@@ -27,15 +27,10 @@ def get_all_products(db: Session):
         )
     
 def get_products_by_id(db: Session, current_user: dict):
-    try:
-        id = current_user.get("id")
-        products = db.query(models.Product).filter(models.Product.created_by == id).all()
-        return products
-    except Exception :
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to fetch products"
-        )
+    
+    id = current_user.get("id")
+    products = db.query(models.Product).filter(models.Product.created_by == id).all()
+    return products
     
 def get_product_by_id(db: Session, id: int, current_user: dict):
 
@@ -83,7 +78,7 @@ def delete_product(db:Session, id:int, current_user:dict):
 
 def get_product_by_id_public(db: Session, id:int):
 
-    product = db.query(models.Product).filter(models.Product.id == id ).first()
+    product = db.query(models.Product).filter(models.Product.id == id).first()
 
     if not product:
         raise HTTPException(

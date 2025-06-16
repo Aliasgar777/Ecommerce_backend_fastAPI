@@ -27,14 +27,33 @@ class UserInDb(ResponseUser):
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
             raise ValueError("Password must contain at least one special character.")
         return v
-
+    
+    @field_validator("email")
+    def validate_email(cls, v):
+        domain = v.split('@')[-1]
+        if domain not in ['gmail.com', 'nucleusteq.org']:
+            raise ValueError("Email must be from 'gmail.com' or 'nucleusteq.org'")
+        return v
 
 class SigninRequest(BaseModel):
     email: EmailStr
     password: str
+    @field_validator("email")
+    def validate_email(cls, v):
+        domain = v.split('@')[-1]
+        if domain not in ['gmail.com', 'nucleusteq.org']:
+            raise ValueError("Email must be from 'gmail.com' or 'nucleusteq.org'")
+        return v
 
 class ForgotPasswordRequest(BaseModel):
     email:EmailStr
+
+    @field_validator("email")
+    def validate_email(cls, v):
+        domain = v.split('@')[-1]
+        if domain not in ['gmail.com', 'nucleusteq.org']:
+            raise ValueError("Email must be from 'gmail.com' or 'nucleusteq.org'")
+        return v
 
 class ResetPasswordRequest(BaseModel):
     token: str
@@ -53,7 +72,6 @@ class ResetPasswordRequest(BaseModel):
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
             raise ValueError("Password must contain at least one special character.")
         return v
-
 
 class NewTokenRquest(BaseModel):
     refresh_token : str

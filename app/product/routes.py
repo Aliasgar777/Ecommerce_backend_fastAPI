@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from app.core.database import get_db
 from app.product import models, schemas, utils
 from sqlalchemy.orm import Session
-from app.auth.schemas import Token
 from app.auth import models as auth_model
 from app.core.logger import logger
 
@@ -26,11 +25,6 @@ def get_products(
     db: Session = Depends(get_db), 
     current_user: dict = Depends(utils.require_role(auth_model.UserRole.admin))):
 
-    if current_user is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Token Expired"
-            )
     return utils.get_products_by_id(db, current_user)
     
 
@@ -42,30 +36,25 @@ def search_products(
 
     keyword = keyword.strip()
 
-    try:
-        keyword_pattern = f"%{keyword}%"
-        products = db.query(models.Product).filter(
-        models.Product.name.ilike(keyword_pattern) |
-        models.Product.description.ilike(keyword_pattern) |
-        models.Product.category.ilike(keyword_pattern)
-        ).all()
+    keyword_pattern = f"%{keyword}%"
+    products = db.query(models.Product).filter(
+    models.Product.name.ilike(keyword_pattern) |
+    models.Product.description.ilike(keyword_pattern) |
+    models.Product.category.ilike(keyword_pattern)
+    ).all()
 
-        if not products:
-            return {
-                "products": [],
-                "message": "No matching products found./"
-            }
-
+    if not products:
+        logger.info(f"No products found for keyword - {keyword}")
         return {
-            "products": products,
-            "message": None 
+            "products": [],
+            "message": "No matching products found./"
         }
 
-    except Exception:
-        raise HTTPException(
-            status_code=500,
-            detail="Not able to search right now!!"
-        )
+    return {
+        "products": products,
+        "message": None 
+    }
+
 
 @router.get("/admin/products/{id}", response_model=schemas.ProductResponse)
 def get_product(

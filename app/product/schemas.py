@@ -10,17 +10,16 @@ class ProductBase(BaseModel):
     category: str = Field(...)
     image_url: str = Field(...)
 
-
 class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(default=None,min_length=3, max_length=10)
-    description: Optional[str]
-    price: Optional[PositiveFloat] 
-    stock: Optional[PositiveInt]
-    category: Optional[str]
-    image_url: Optional[str]
+    description: Optional[str] = Field(default=None)
+    price: Optional[PositiveFloat] = Field(default=None)
+    stock: Optional[PositiveInt]= Field(default=None)
+    category: Optional[str]= Field(default=None)
+    image_url: Optional[str]= Field(default=None)
 
 class ProductResponse(ProductBase):
     id: int

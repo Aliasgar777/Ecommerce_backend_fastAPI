@@ -98,10 +98,15 @@ def forgot_password(
     logger.info("forgot password using free email service")
     user = db.query(models.Users).filter(models.Users.email == request.email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"User with email-{request.email} not found")
 
+    # Generating a url safe token
     token = generate_reset_token(user.email)
-    logger.info(token)
+    logger.info(f"Reset token for user {request.email} - {token}")
+
+    # Sending a link which contains the reset token
     send_reset_email(user.email, token)
     return {"message": "Password reset email sent"}
 
@@ -115,20 +120,18 @@ def reset_password(
     token = data.token
     new_password = data.new_password
     logger.info("updating the new password")
+    # Get email from token and also verify token
     email = verify_reset_token(token)
-    if not email:
-        raise HTTPException(
-            status_code=400, 
-            detail="Invalid or expired token")
 
     user = utils.get_user(email, db)
     if not user:
         raise HTTPException(
             status_code=404, 
-            detail="User not found")
+            detail=f"User not found with email - {email}")
 
     user.hashed_password = get_password_hash(new_password)
     db.commit()
+    db.refresh(user)
     logger.info(f"new password updated for user {user.name}")
     return f"password reset complete for user ({user.name}) now login with the new password"
 
@@ -143,9 +146,12 @@ def renew_access_token(
         user = utils.get_user(payload.get("sub"), db)
 
         if user is None:
-            HTTPException(status_code=404, detail=f"user with email - {user.email} does not exists")
+            HTTPException(
+                status_code=404, 
+                detail=f"user with email - {user.email} does not exists")
         
-        new_access_token = utils.create_access_token(payload, timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES)))
+        new_access_token = utils.create_access_token(
+            payload, timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES)))
 
         return {
             "access_token" : f"{new_access_token}",

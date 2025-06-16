@@ -18,7 +18,7 @@ def get_db():
         logger.debug("Database session opened.")
         yield db
     except Exception as e:
-        logger.critical(f"Exception occurred during DB session.{e}")
+        logger.critical(f"Exception occurred during DB session : {e}")
         raise e
     finally:
         db.close()

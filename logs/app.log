@@ -1,0 +1,8 @@
+2025-06-16 23:10:57,098 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-16 23:10:57,104 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-16 23:11:14,755 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-16 23:11:14,761 - ecommerce_backend - INFO - Sign-in attempt for email: yashvi@gmail.com
+2025-06-16 23:11:15,259 - ecommerce_backend - INFO - Successful login for user_id: 9, email: yashvi@gmail.com
+2025-06-16 23:11:15,261 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-16 23:11:54,629 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-16 23:11:54,650 - ecommerce_backend - DEBUG - Database session closed.

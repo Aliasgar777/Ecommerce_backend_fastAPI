@@ -8,6 +8,7 @@ def send_reset_email(email: str, token: str):
     msg['Subject'] = "Reset Your Password"
     msg['From'] = "aliasgarsaify61@gmail.com"
     msg['To'] = email
+    # email body -
     msg.set_content(f"Click the link to reset your password: {reset_link}")
     logger.info(f"email sent for reset password to {email}")
     with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
