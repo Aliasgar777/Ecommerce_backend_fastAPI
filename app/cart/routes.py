@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from . import schemas
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.product import utils as product_utils
-from app.auth import models as auth_model
+from app.product.utils import require_role
+from app.auth.models import UserRole
 from . import models
 from app.core.logger import logger
 from typing import List
@@ -14,9 +14,9 @@ router = APIRouter()
 @router.post("/cart")
 def add_to_cart(
     cart_item : schemas.CartRequest, db : Session = Depends(get_db),
-    current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))
+    current_user: dict = Depends(require_role(UserRole.user))
     ):
-    logger.info(f"adding products to cart with id {cart_item.product_id}")
+    logger.info(f"adding products to cart with id {cart_item.product_id} to user {current_user.get("id")}")
 
     product = db.query(prod_model.Product).filter(prod_model.Product.id == cart_item.product_id).first()
     if product is None:
@@ -30,7 +30,9 @@ def add_to_cart(
             detail= f"Insufficient stock, prod_id - {cart_item.product_id}")
     
     exist_in_cart = db.query(models.Cart).filter(
-        models.Cart.product_id == cart_item.product_id).first()
+        models.Cart.product_id == cart_item.product_id,
+        models.Cart.user_id == current_user.get("id")
+        ).first()
 
     if exist_in_cart is None :
         product_in_cart = models.Cart(
@@ -48,7 +50,7 @@ def add_to_cart(
 @router.get("/cart", response_model=List[schemas.CartResponse])
 def view_cart(
     db : Session = Depends(get_db),
-    current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))):
+    current_user: dict = Depends(require_role(UserRole.user))):
 
     logger.info(f"veiwing carts items for user with email - {current_user.get("sub")}")
     items = db.query(models.Cart).filter(models.Cart.user_id == current_user.get("id")).all()
@@ -58,7 +60,7 @@ def view_cart(
 def remove_from_cart(
     product_id : int = Path(..., ge=1),
     db : Session = Depends(get_db),
-    current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))
+    current_user: dict = Depends(require_role(UserRole.user))
     ):
     logger.info(f"Removing product with id - {product_id} from cart")
 
@@ -83,7 +85,7 @@ def update_cart(
     prod_to_update : schemas.CartUpdate ,
     product_id : int = Path(..., ge=1),
     db : Session = Depends(get_db),
-    current_user: dict = Depends(product_utils.require_role(auth_model.UserRole.user))
+    current_user: dict = Depends(require_role(UserRole.user))
     ):
     logger.info(f"updating the product with id-{product_id} quantity in cart")
     

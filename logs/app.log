@@ -1,23 +1,7 @@
-2025-06-17 11:00:46,974 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-17 11:00:46,982 - ecommerce_backend - INFO - Sign-in attempt for email: aliasgarsaify7049@gmail.com
-2025-06-17 11:00:47,688 - ecommerce_backend - INFO - Successful login for user_id: 7, email: aliasgarsaify7049@gmail.com
-2025-06-17 11:00:47,689 - ecommerce_backend - DEBUG - Database session closed.
-2025-06-17 11:00:55,505 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-17 11:00:55,508 - ecommerce_backend - INFO - forgot password using free email service
-2025-06-17 11:00:55,511 - ecommerce_backend - INFO - Reset token for user aliasgarsaify7049@gmail.com - ImFsaWFzZ2Fyc2FpZnk3MDQ5QGdtYWlsLmNvbSI.aFD9jw.W4In90v7xvWlpomZK0-hAmLJ7Y0
-2025-06-17 11:00:55,517 - ecommerce_backend - INFO - email sent for reset password to aliasgarsaify7049@gmail.com
-2025-06-17 11:00:59,260 - ecommerce_backend - DEBUG - Database session closed.
-2025-06-17 11:01:29,415 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-17 11:01:29,418 - ecommerce_backend - INFO - updating the new password
-2025-06-17 11:01:29,816 - ecommerce_backend - INFO - new password updated for user ali
-2025-06-17 11:01:29,816 - ecommerce_backend - DEBUG - Database session closed.
-2025-06-17 11:01:35,506 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-17 11:01:35,506 - ecommerce_backend - INFO - Sign-in attempt for email: aliasgarsaify7049@gmail.com
-2025-06-17 11:01:35,884 - ecommerce_backend - WARNING - Failed login attempt for email: aliasgarsaify7049@gmail.com
-2025-06-17 11:01:35,885 - ecommerce_backend - CRITICAL - Exception occurred during DB session : 401: Incorrect email or password
-2025-06-17 11:01:35,885 - ecommerce_backend - DEBUG - Database session closed.
-2025-06-17 11:01:35,886 - ecommerce_backend - ERROR - HTTP error: Incorrect email or password
-2025-06-17 11:01:40,932 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-17 11:01:40,932 - ecommerce_backend - INFO - Sign-in attempt for email: aliasgarsaify7049@gmail.com
-2025-06-17 11:01:41,311 - ecommerce_backend - INFO - Successful login for user_id: 7, email: aliasgarsaify7049@gmail.com
-2025-06-17 11:01:41,312 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 16:04:51,752 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 16:04:51,752 - ecommerce_backend - INFO - Checking out for the user with id-10
+2025-06-17 16:04:51,892 - ecommerce_backend - INFO - Checkout complete
+2025-06-17 16:04:51,895 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 16:05:05,520 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 16:05:05,521 - ecommerce_backend - INFO - veiwing carts items for user with email - aditya@gmail.com
+2025-06-17 16:05:05,523 - ecommerce_backend - DEBUG - Database session closed.
