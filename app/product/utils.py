@@ -26,10 +26,10 @@ def get_all_products(db: Session):
             detail="Failed to fetch products"
         )
     
-def get_products_by_id(db: Session, current_user: dict):
+def get_products_by_id(db: Session, current_user: dict, offset : int, page_size : int):
     
     id = current_user.get("id")
-    products = db.query(models.Product).filter(models.Product.created_by == id).all()
+    products = db.query(models.Product).filter(models.Product.created_by == id).offset(offset).limit(page_size).all()
     return products
     
 def get_product_by_id(db: Session, id: int, current_user: dict):

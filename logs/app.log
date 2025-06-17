@@ -1,8 +1,14 @@
-2025-06-16 23:10:57,098 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-16 23:10:57,104 - ecommerce_backend - DEBUG - Database session closed.
-2025-06-16 23:11:14,755 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-16 23:11:14,761 - ecommerce_backend - INFO - Sign-in attempt for email: yashvi@gmail.com
-2025-06-16 23:11:15,259 - ecommerce_backend - INFO - Successful login for user_id: 9, email: yashvi@gmail.com
-2025-06-16 23:11:15,261 - ecommerce_backend - DEBUG - Database session closed.
-2025-06-16 23:11:54,629 - ecommerce_backend - DEBUG - Database session opened.
-2025-06-16 23:11:54,650 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 09:47:11,279 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 09:47:11,289 - ecommerce_backend - INFO - Sign-in attempt for email: yashvi@gmail.com
+2025-06-17 09:47:11,916 - ecommerce_backend - INFO - Successful login for user_id: 9, email: yashvi@gmail.com
+2025-06-17 09:47:11,918 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 09:47:29,862 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 09:47:29,870 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 09:47:58,747 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 09:47:58,756 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 09:48:05,569 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 09:48:05,571 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 09:48:10,022 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 09:48:10,024 - ecommerce_backend - DEBUG - Database session closed.
+2025-06-17 09:48:15,681 - ecommerce_backend - DEBUG - Database session opened.
+2025-06-17 09:48:15,684 - ecommerce_backend - DEBUG - Database session closed.

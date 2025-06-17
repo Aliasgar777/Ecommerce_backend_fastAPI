@@ -23,10 +23,13 @@ def create_product(
 @router.get("/admin/products", response_model=List[schemas.ProductResponse])
 def get_products(
     db: Session = Depends(get_db), 
-    current_user: dict = Depends(utils.require_role(auth_model.UserRole.admin))):
+    current_user: dict = Depends(utils.require_role(auth_model.UserRole.admin)),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1)):
 
-    return utils.get_products_by_id(db, current_user)
-    
+    offset = (page - 1) * page_size
+    return utils.get_products_by_id(db, current_user, offset, page_size)
+      
 
 @router.get("/products/search", response_model=schemas.ProductSearchResponse)
 def search_products(
